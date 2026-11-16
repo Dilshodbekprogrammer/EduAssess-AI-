@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+
+{% block title %}Savollar Banki & Test Yuklash Oynasi | EduAssess AI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 opacity-10 text-9xl">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+        </div>
+        <div class="max-w-3xl relative z-10">
+            <div class="inline-flex items-center space-x-2 bg-indigo-500/30 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-indigo-200 mb-3 border border-indigo-400/30">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Bilish • Qo'llash • Mulohaza yuritish modullari</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Test Savollarini Yuklash & Bankni Boshqarish</h1>
+            <p class="mt-2 text-indigo-100 text-sm leading-relaxed">
+                Summativ imtihonlar (15 ta savol) uchun testlar bazasini boyiting. Savollar 3 ta kognitiv modul (Bilish, Qo'llash, Mulohaza yuritish) bo'yicha saralanadi va o'quvchining zaif mavzulariga adaptiv tarzda taqsimlanadi.
+            </p>
+        </div>
+    </div>
+
+    <!-- Stats Cards: Kognitiv modullar holati -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Jami Savollar</span>
+                <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ total_q }} ta</span>
+                <span class="text-xs text-indigo-600 font-semibold mt-0.5 block">5 ta mavzu bo'yicha</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 text-xl">
+                <i class="fa-solid fa-database"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-blue-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold text-blue-500 uppercase tracking-wider block">Bilish Moduli</span>
+                <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ k_count }} ta</span>
+                <span class="text-xs text-slate-500 font-medium mt-0.5 block">Faktlar va ta'riflar</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-xl">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-emerald-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider block">Qo'llash Moduli</span>
+                <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ a_count }} ta</span>
+                <span class="text-xs text-slate-500 font-medium mt-0.5 block">Amaliyot va hisob</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 text-xl">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-purple-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-bold text-purple-600 uppercase tracking-wider block">Mulohaza Moduli</span>
+                <span class="text-2xl font-extrabold text-slate-900 mt-1 block">{{ r_count }} ta</span>
+                <span class="text-xs text-slate-500 font-medium mt-0.5 block">Tahlil va xulosa</span>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 text-xl">
+                <i class="fa-solid fa-lightbulb"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-6">
+            <div class="flex space-x-2">
+                <button type="button" onclick="switchTab('single')" id="tab-btn-single" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm bg-indigo-600 text-white shadow-sm transition">
+                    <i class="fa-solid fa-pen-to-square mr-1.5"></i> Yagona Savol Kiritish
+                </button>
+                <button type="button" onclick="switchTab('paste')" id="tab-btn-paste" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-bolt mr-1.5"></i> Tezkor Matn (Matndan O'qish)
+                </button>
+                <button type="button" onclick="switchTab('csv')" id="tab-btn-csv" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-file-csv mr-1.5"></i> CSV Fayl Yuklash
+                </button>
+            </div>
+            <a href="{% url 'teacher_dashboard' %}" class="inline-flex items-center text-xs font-bold text-indigo-600 hover:text-indigo-800">
+                <i class="fa-solid fa-arrow-left mr-1"></i> O'qituvchi Jurnaliga qaytish
+            </a>
+        </div>
+
+        <!-- TAB 1: Yagona Savol Qo'shish -->
+        <div id="tab-single" class="tab-content block">
+            <form method="POST" action="{% url 'upload_questions' %}" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="single">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Mavzu -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Mavzuni tanlang *</label>
+                        <select name="topic_id" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            {% for topic in topics %}
+                                <option value="{{ topic.id }}">{{ topic.order }}. {{ topic.title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Kognitiv Modul (Daraja) -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Kognitiv Modul (Daraja) *</label>
+                        <select name="cognitive_level" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="KNOWLEDGE">🔵 Bilish (Faktlar, atamalar, ta'riflar)</option>
+                            <option value="APPLICATION" selected>🟢 Qo'llash (Amaliy hisoblash, algoritm, kod)</option>
+                            <option value="REASONING">🟣 Mulohaza yuritish (Tahlil, mantiq, sintez)</option>
+                        </select>
+                    </div>
+
+                    <!-- Qiyinchilik & Rasch parametri -->
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Qiyinchilik</label>
+                            <select name="difficulty" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-2 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="EASY">Oson</option>
+                                <option value="MEDIUM" selected>O'rta</option>
+                                <option value="HARD">Qiyin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Rasch b (-2..+2)</label>
+                            <input type="number" step="0.1" name="rasch_difficulty" value="0.0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Savol matni -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Savol matni *</label>
+                    <textarea name="text" rows="3" required placeholder="Savol matnini bu yerga yozing..." class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <!-- Variantlar -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-slate-700">Variant A</span>
+                            <label class="inline-flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name="correct_option" value="A" checked class="text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-semibold text-emerald-700">To'g'ri javob</span>
+                            </label>
+                        </div>
+                        <input type="text" name="option_a" required placeholder="Variant A matni" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-slate-700">Variant B</span>
+                            <label class="inline-flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name="correct_option" value="B" class="text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-semibold text-emerald-700">To'g'ri javob</span>
+                            </label>
+                        </div>
+                        <input type="text" name="option_b" required placeholder="Variant B matni" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-slate-700">Variant C</span>
+                            <label class="inline-flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name="correct_option" value="C" class="text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-semibold text-emerald-700">To'g'ri javob</span>
+                            </label>
+                        </div>
+                        <input type="text" name="option_c" required placeholder="Variant C matni" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+
+                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-xs font-bold text-slate-700">Variant D</span>
+                            <label class="inline-flex items-center space-x-1 cursor-pointer">
+                                <input type="radio" name="correct_option" value="D" class="text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-semibold text-emerald-700">To'g'ri javob</span>
+                            </label>
+                        </div>
+                        <input type="text" name="option_d" required placeholder="Variant D matni" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Tushuntirish / Izoh -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Tushuntirish / To'g'ri javob izohi (Ixtiyoriy)</label>
+                    <input type="text" name="explanation" placeholder="O'quvchi xato yechganda unga ko'rsatiladigan izoh..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Savolni Bazaga Qo'shish</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 2: Tezkor Matn orqali yuklash (Fast Paste) -->
+        <div id="tab-paste" class="tab-content hidden">
+            <form method="POST" action="{% url 'upload_questions' %}" class="space-y-5">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="paste">
+
+                <div class="max-w-md">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Mavzuni tanlang *</label>
+                    <select name="topic_id" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        {% for topic in topics %}
+                            <option value="{{ topic.id }}">{{ topic.order }}. {{ topic.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Savollar matni (Format namunasi o'ng tomonda ko'rsatilgan)</label>
+                        <button type="button" onclick="insertSampleText()" class="text-xs text-indigo-600 font-bold hover:underline">
+                            <i class="fa-solid fa-copy mr-1"></i> Namunaviy matnni joylash
+                        </button>
+                    </div>
+                    <textarea id="paste-textarea" name="raw_text" rows="12" required placeholder="Savollarni quyidagi formatda kiriting:
+
+Savol: Python-da butun son qaysi turda saqlanadi?
+A) int
+B) float
+C) str
+D) bool
+Javob: A
+Modul: Bilish
+Qiyinchilik: Oson
+Izoh: int turi butun sonlarni saqlaydi.
+---
+Savol: a = 10; b = 20; c = a + b bo'lsa c nechiga teng?
+A) 30
+B) 20
+C) 10
+D) 0
+Javob: A
+Modul: Qo'llash
+Qiyinchilik: O'rta
+---" class="w-full font-mono bg-slate-50 border border-slate-300 rounded-xl p-4 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center space-x-2">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Matnni Tahlil Qilib Bazaga Yuklash</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB 3: CSV Fayl Yuklash -->
+        <div id="tab-csv" class="tab-content hidden">
+            <form method="POST" action="{% url 'upload_questions' %}" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="csv">
+
+                <div class="max-w-md">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Mavzuni tanlang *</label>
+                    <select name="topic_id" required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        {% for topic in topics %}
+                            <option value="{{ topic.id }}">{{ topic.order }}. {{ topic.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative">
+                    <input type="file" name="csv_file" accept=".csv" required class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+                    <div class="space-y-3">
+                        <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto text-2xl">
+                            <i class="fa-solid fa-file-csv"></i>
+                        </div>
+                        <div class="text-sm font-bold text-slate-700">
+                            Kompyuteringizdan <span class="text-indigo-600">CSV faylni</span> tanlang
+                        </div>
+                        <p class="text-xs text-slate-500">
+                            Fayl ustunlari: <code>text, option_a, option_b, option_c, option_d, correct_option, cognitive_level, difficulty, explanation</code>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-xl shadow-md transition flex items-center space-x-2">
+                        <i class="fa-solid fa-upload"></i>
+                        <span>CSV Faylni Yuklash</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Yaqinda qo'shilgan savollar ro'yxati -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-bold text-slate-900 flex items-center">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-600 mr-2"></i>
+                Yaqinda Kiritilgan Savollar (Oxirgi 8 ta)
+            </h3>
+            <span class="text-xs text-slate-500">Jami {{ total_q }} ta savoldan</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 text-slate-400 uppercase font-semibold">
+                        <th class="py-3 px-3">ID</th>
+                        <th class="py-3 px-3">Mavzu</th>
+                        <th class="py-3 px-3">Savol matni</th>
+                        <th class="py-3 px-3">Kognitiv Modul</th>
+                        <th class="py-3 px-3">Qiyinchilik</th>
+                        <th class="py-3 px-3">Javob</th>
+                        <th class="py-3 px-3">Rasch Vazni</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for q in recent_questions %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="py-3 px-3 font-mono text-slate-500">#{{ q.id }}</td>
+                            <td class="py-3 px-3 font-medium text-slate-800">{{ q.topic.title|truncatechars:25 }}</td>
+                            <td class="py-3 px-3 text-slate-700 font-normal max-w-xs truncate">{{ q.text }}</td>
+                            <td class="py-3 px-3">
+                                {% if q.cognitive_level == 'KNOWLEDGE' %}
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">🔵 Bilish</span>
+                                {% elif q.cognitive_level == 'APPLICATION' %}
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700">🟢 Qo'llash</span>
+                                {% else %}
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">🟣 Mulohaza</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-3">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold {% if q.difficulty == 'EASY' %}bg-slate-100 text-slate-700{% elif q.difficulty == 'MEDIUM' %}bg-amber-100 text-amber-800{% else %}bg-rose-100 text-rose-800{% endif %}">
+                                    {{ q.get_difficulty_display }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-3 font-bold text-indigo-600">{{ q.correct_option }}</td>
+                            <td class="py-3 px-3 font-mono text-slate-600">{{ q.weight }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-6 text-center text-slate-400">Hozircha savollar mavjud emas.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+    });
+
+    document.getElementById('tab-' + tabName).classList.remove('hidden');
+    const activeBtn = document.getElementById('tab-btn-' + tabName);
+    activeBtn.classList.remove('text-slate-600');
+    activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+}
+
+function insertSampleText() {
+    const sample = `Savol: Axborot xavfsizligida 2 faktorli autentifikatsiya (2FA) nima uchun zarur?
+A) Faqat parolni bilish yetarli bo'lmaydi, ikkinchi tasdiqlash vositasi orqali hisob xavfsizligi oshiriladi
+B) Internet tezligini 2 barobarga oshirish uchun
+C) Parolni unutilganda avtomatik yangilash uchun
+D) Kompyuter xotirasini tejash uchun
+Javob: A
+Modul: Mulohaza yuritish
+Qiyinchilik: O'rta
+Izoh: 2FA parol o'g'irlanganda ham ruxsatsiz kirishni bartaraf etadi.
+---
+Savol: Python tilida sonning kvadrat ildizini topish uchun qaysi modul ishlatiladi?
+A) math
+B) sys
+C) random
+D) os
+Javob: A
+Modul: Qo'llash
+Qiyinchilik: Oson
+Izoh: math.sqrt() funksiyasi kvadrat ildizni hisoblaydi.`;
+    document.getElementById('paste-textarea').value = sample;
+}
+</script>
+{% endblock %}
+
